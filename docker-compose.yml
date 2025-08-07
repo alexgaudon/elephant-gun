@@ -1,0 +1,8 @@
+version: "3.8"
+
+services:
+  elephant-gun:
+    image: ghcr.io/alexgaudon/elephant-gun:latest
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+    restart: unless-stopped
