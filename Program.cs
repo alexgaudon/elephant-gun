@@ -6,15 +6,30 @@ namespace ElephantGun;
 public class Program
 {
     private static DiscordSocketClient? _client;
-    private const ulong TARGET_USER_ID = 646903718641664020;
+    private static ulong TARGET_USER_ID;
+    private static ulong BOT_OWNER_ID;
 
     public static async Task Main(string[] args)
     {
         var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+        var targetUserIdStr = Environment.GetEnvironmentVariable("TARGET_USER_ID");
+        var botOwnerIdStr = Environment.GetEnvironmentVariable("BOT_OWNER_ID");
         
         if (string.IsNullOrEmpty(token))
         {
             Console.Error.WriteLine("DISCORD_TOKEN environment variable is required!");
+            Environment.Exit(1);
+        }
+
+        if (string.IsNullOrEmpty(targetUserIdStr) || !ulong.TryParse(targetUserIdStr, out TARGET_USER_ID))
+        {
+            Console.Error.WriteLine("TARGET_USER_ID environment variable is required and must be a valid ulong!");
+            Environment.Exit(1);
+        }
+
+        if (string.IsNullOrEmpty(botOwnerIdStr) || !ulong.TryParse(botOwnerIdStr, out BOT_OWNER_ID))
+        {
+            Console.Error.WriteLine("BOT_OWNER_ID environment variable is required and must be a valid ulong!");
             Environment.Exit(1);
         }
 
