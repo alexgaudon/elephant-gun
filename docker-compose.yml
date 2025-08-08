@@ -5,4 +5,6 @@ services:
     image: ghcr.io/alexgaudon/elephant-gun:latest
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - TARGET_USER_ID=${TARGET_USER_ID}
+      - BOT_OWNER_ID=${BOT_OWNER_ID}
     restart: unless-stopped
