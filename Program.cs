@@ -83,11 +83,8 @@ public class Program
             contentLower.Contains("elephant") ||
             contentLower.Contains("php"))
         {
-            // React with elephant emoji
-            await message.AddReactionAsync(new Emoji("🐘"));
-            
-            // React with gun emoji
-            await message.AddReactionAsync(new Emoji("🔫"));
+            // React with custom shut emoji
+            await message.AddReactionAsync(Emote.Parse("<:shut:1403433783830646835>"));
         }
     }
 
