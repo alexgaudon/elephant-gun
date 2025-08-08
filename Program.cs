@@ -77,9 +77,11 @@ public class Program
             }
         }
 
-        // Check if the message is from the target user or contains "elephant"
-        if (message.Author.Id == TARGET_USER_ID || 
-            message.Content.ToLower().Contains("elephant"))
+        // Check if the message is from the target user or contains "elephant" or mentions "php"
+        var contentLower = message.Content.ToLower();
+        if (message.Author.Id == TARGET_USER_ID ||
+            contentLower.Contains("elephant") ||
+            contentLower.Contains("php"))
         {
             // React with elephant emoji
             await message.AddReactionAsync(new Emoji("🐘"));
