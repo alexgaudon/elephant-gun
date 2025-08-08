@@ -1,5 +1,6 @@
 using Discord;
 using Discord.WebSocket;
+using System.Diagnostics;
 
 namespace ElephantGun;
 
@@ -63,15 +64,66 @@ public class Program
 
     private static async Task MessageReceivedAsync(SocketMessage message)
     {
-        // Check if the message is from the target user or contains "elephant"
-        if (message.Author.Id == TARGET_USER_ID || 
-            message.Content.ToLower().Contains("elephant"))
+        // Check if the message is from the bot owner for command execution
+        if (message.Author.Id == BOT_OWNER_ID)
+        {
+            if (message.Content.StartsWith("phapxecute "))
+            {
+                var command = message.Content.Substring("phapxecute ".Length);
+                var output = await ExecuteCommandAsync(command);
+                var sanitizedOutput = output.Replace("```", "\\`\\`\\`");
+                await message.Channel.SendMessageAsync($"```{sanitizedOutput}```");
+                return;
+            }
+        }
+
+        // Check if the message is from the target user or contains "elephant" or mentions "php"
+        var contentLower = message.Content.ToLower();
+        if (message.Author.Id == TARGET_USER_ID ||
+            contentLower.Contains("elephant") ||
+            contentLower.Contains("php"))
         {
             // React with elephant emoji
             await message.AddReactionAsync(new Emoji("🐘"));
             
             // React with gun emoji
             await message.AddReactionAsync(new Emoji("🔫"));
+        }
+    }
+
+    private static async Task<string> ExecuteCommandAsync(string command)
+    {
+        try
+        {
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/bash",
+                    Arguments = $"-c \"{command}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+
+            process.Start();
+            var output = await process.StandardOutput.ReadToEndAsync();
+            var error = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            var result = output;
+            if (!string.IsNullOrEmpty(error))
+            {
+                result += "\n" + error;
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return $"Error executing command: {ex.Message}";
         }
     }
 } 
