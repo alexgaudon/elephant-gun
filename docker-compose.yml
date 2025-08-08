@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   elephant-gun:
-    image: ghcr.io/alexgaudon/elephant-gun:latest
+    build: .
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       - TARGET_USER_ID=${TARGET_USER_ID}

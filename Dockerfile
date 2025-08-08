@@ -17,6 +17,10 @@ RUN dotnet build -c Release -o out
 # Build the runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
+# Install cowsay and add it to PATH
+RUN apt-get update && apt-get install -y cowsay && rm -rf /var/lib/apt/lists/*
+ENV PATH="/usr/games:${PATH}"
+
 # Set the working directory
 WORKDIR /app
 
