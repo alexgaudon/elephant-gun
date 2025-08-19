@@ -4,22 +4,21 @@ using dotenv.net;
 using Microsoft.Extensions.Configuration;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ElephantGun;
 
+[SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Field names are expected to match environment variable names")]
 public class Config
 {
     [Required]
-    [ConfigurationKeyName("DISCORD_TOKEN")]
-    public string DiscordToken { get; set; }
+    public required string DISCORD_TOKEN { get; init; }
 
     [Required]
-    [ConfigurationKeyName("TARGET_USER_ID")]
-    public ulong TargetUserId { get; set; }
+    public ulong TARGET_USER_ID { get; init; }
 
     [Required]
-    [ConfigurationKeyName("BOT_OWNER_ID")]
-    public ulong BotOwnerId { get; set; }
+    public ulong BOT_OWNER_ID { get; init; }
 }
 
 public static class Program
@@ -29,10 +28,7 @@ public static class Program
 
     public static async Task Main(string[] args)
     {
-        Console.Write(Environment.CurrentDirectory);
         DotEnv.Load();
-        
-        Console.WriteLine(Environment.GetEnvironmentVariable("DISCORD_TOKEN"));
         
         var config = new ConfigurationBuilder().AddEnvironmentVariables().Build().Get<Config>();
         if (config == null)
@@ -54,7 +50,7 @@ public static class Program
         _client.Ready += ReadyAsync;
         _client.MessageReceived += MessageReceivedAsync;
 
-        await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
+        await _client.LoginAsync(TokenType.Bot, _config.DISCORD_TOKEN);
         await _client.StartAsync();
 
         // Keep the bot running
@@ -76,7 +72,7 @@ public static class Program
     private static async Task MessageReceivedAsync(SocketMessage message)
     {
         // Check if the message is from the bot owner for command execution
-        if (message.Author.Id == _config.BotOwnerId)
+        if (message.Author.Id == _config.BOT_OWNER_ID)
         {
             if (message.Content.StartsWith("phapxecute "))
             {
@@ -90,7 +86,7 @@ public static class Program
 
         // Check if the message is from the target user or contains "elephant" or mentions "php"
         var contentLower = message.Content.ToLower();
-        if (message.Author.Id == _config.TargetUserId ||
+        if (message.Author.Id == _config.TARGET_USER_ID ||
             contentLower.Contains("elephant") ||
             contentLower.Contains("php"))
         {

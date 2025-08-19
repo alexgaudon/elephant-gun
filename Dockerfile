@@ -1,34 +1,23 @@
-# Use the official .NET 8.0 SDK image as the base image
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the project file and restore dependencies
 COPY *.csproj ./
 RUN dotnet restore
 
-# Copy the rest of the source code
 COPY . ./
 
-# Build the application
-RUN dotnet build -c Release -o out
+RUN dotnet publish -c Release -o out
 
-# Build the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM debian:trixie-slim AS runtime
 
-# Install cowsay, fortune and add them to PATH
-RUN apt-get update && apt-get install -y cowsay fortune && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y cowsay fortune libicu-dev ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 ENV PATH="/usr/games:${PATH}"
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the built application from the build stage
 COPY --from=build /app/out ./
 
-# Expose port (optional, for health checks)
-EXPOSE 8080
-
-# Set the entry point
-ENTRYPOINT ["dotnet", "ElephantGun.dll"] 
+ENTRYPOINT ["/app/ElephantGun"] 
