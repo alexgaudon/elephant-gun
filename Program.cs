@@ -1,38 +1,45 @@
 using Discord;
 using Discord.WebSocket;
+using dotenv.net;
+using Microsoft.Extensions.Configuration;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ElephantGun;
 
-public class Program
+[SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Field names are expected to match environment variable names")]
+public class Config
+{
+    [Required]
+    public required string DISCORD_TOKEN { get; init; }
+
+    [Required]
+    public ulong TARGET_USER_ID { get; init; }
+
+    [Required]
+    public ulong BOT_OWNER_ID { get; init; }
+}
+
+public static class Program
 {
     private static DiscordSocketClient? _client;
-    private static ulong TARGET_USER_ID;
-    private static ulong BOT_OWNER_ID;
+    private static Config _config = null!;
 
     public static async Task Main(string[] args)
     {
-        var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
-        var targetUserIdStr = Environment.GetEnvironmentVariable("TARGET_USER_ID");
-        var botOwnerIdStr = Environment.GetEnvironmentVariable("BOT_OWNER_ID");
+        DotEnv.Load();
         
-        if (string.IsNullOrEmpty(token))
+        var config = new ConfigurationBuilder().AddEnvironmentVariables().Build().Get<Config>();
+        if (config == null)
         {
-            Console.Error.WriteLine("DISCORD_TOKEN environment variable is required!");
+            Console.Error.WriteLine("Failed to load configuration from environment variables.");
             Environment.Exit(1);
         }
-
-        if (string.IsNullOrEmpty(targetUserIdStr) || !ulong.TryParse(targetUserIdStr, out TARGET_USER_ID))
-        {
-            Console.Error.WriteLine("TARGET_USER_ID environment variable is required and must be a valid ulong!");
-            Environment.Exit(1);
-        }
-
-        if (string.IsNullOrEmpty(botOwnerIdStr) || !ulong.TryParse(botOwnerIdStr, out BOT_OWNER_ID))
-        {
-            Console.Error.WriteLine("BOT_OWNER_ID environment variable is required and must be a valid ulong!");
-            Environment.Exit(1);
-        }
+        
+        Validator.ValidateObject(config, new ValidationContext(config), validateAllProperties: true);
+        
+        _config = config;
 
         _client = new DiscordSocketClient(new DiscordSocketConfig
         {
@@ -43,7 +50,7 @@ public class Program
         _client.Ready += ReadyAsync;
         _client.MessageReceived += MessageReceivedAsync;
 
-        await _client.LoginAsync(TokenType.Bot, token);
+        await _client.LoginAsync(TokenType.Bot, _config.DISCORD_TOKEN);
         await _client.StartAsync();
 
         // Keep the bot running
@@ -65,7 +72,7 @@ public class Program
     private static async Task MessageReceivedAsync(SocketMessage message)
     {
         // Check if the message is from the bot owner for command execution
-        if (message.Author.Id == BOT_OWNER_ID)
+        if (message.Author.Id == _config.BOT_OWNER_ID)
         {
             if (message.Content.StartsWith("phapxecute "))
             {
@@ -79,7 +86,7 @@ public class Program
 
         // Check if the message is from the target user or contains "elephant" or mentions "php"
         var contentLower = message.Content.ToLower();
-        if (message.Author.Id == TARGET_USER_ID ||
+        if (message.Author.Id == _config.TARGET_USER_ID ||
             contentLower.Contains("elephant") ||
             contentLower.Contains("php"))
         {
