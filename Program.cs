@@ -37,7 +37,7 @@ public class Config
 
     public string? OPENAI_IMAGE_API_URL { get; init; }
 
-    public double ELEPHANT_FACT_CHANCE { get; init; } = 0.15;
+    public double ELEPHANT_FACT_CHANCE { get; init; } = 1.0;
 }
 
 public static class Program
